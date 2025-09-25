@@ -1,11 +1,11 @@
-from flask import Flask, render_template, request, send_from_directory, url_for
+from flask import Flask, render_template, request, send_from_directory
 import tensorflow as tf
 import numpy as np
 import os
 from werkzeug.utils import secure_filename
 
-# Load model
-MODEL_PATH = r"E:\Personal_Projects\cv\wildfire_detection_model.h5"
+# Load model from project directory
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "wildfire_detection_model.h5")
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
 # Create Flask app
@@ -15,7 +15,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Preprocessing function
 def preprocess_image(image_path):
-    img = tf.keras.preprocessing.image.load_img(image_path, target_size=(224, 224))  # change size if needed
+    img = tf.keras.preprocessing.image.load_img(image_path, target_size=(224, 224))  # adjust size if needed
     img_array = tf.keras.preprocessing.image.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0) / 255.0
     return img_array
@@ -25,7 +25,7 @@ def index():
     result = None
     probability = None
     filename = None
-    play_sound = False   # Default: no sound
+    play_sound = False  # Default: no sound
 
     if request.method == 'POST':
         if 'file' not in request.files or request.files['file'].filename == '':
@@ -43,7 +43,7 @@ def index():
 
         if predictions >= 0.5:
             result = "🔥 Fire Detected"
-            play_sound = True   # Play alarm if fire is detected
+            play_sound = True  # Play alarm if fire is detected
         else:
             result = "✅ No Fire"
 
@@ -61,5 +61,5 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    port = int(os.environ.get("PORT", 5000))  # Dynamic port for Render
+    app.run(host='0.0.0.0', port=port, debug=True)
