@@ -45,6 +45,8 @@
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             border: 1px solid var(--dark-border);
+            transform-style: preserve-3d;
+            perspective: 1000px;
         }
         
         .sidebar {
@@ -58,6 +60,7 @@
             text-align: center;
             position: relative;
             overflow: hidden;
+            transition: transform 0.5s ease;
         }
         
         .sidebar::before {
@@ -75,6 +78,7 @@
             padding: 40px;
             display: flex;
             flex-direction: column;
+            transition: transform 0.5s ease;
         }
         
         .logo {
@@ -84,6 +88,11 @@
             font-size: 24px;
             font-weight: 700;
             color: var(--fire-yellow);
+            transition: transform 0.3s ease;
+        }
+        
+        .logo:hover {
+            transform: translateY(-5px) scale(1.05);
         }
         
         .logo i {
@@ -96,12 +105,22 @@
             color: var(--fire-yellow);
             margin: 20px 0;
             filter: drop-shadow(0 0 10px rgba(255, 165, 0, 0.3));
+            transition: transform 0.5s ease;
+        }
+        
+        .safety-icon:hover {
+            transform: rotateY(180deg) scale(1.1);
         }
         
         .sidebar h2 {
             font-size: 22px;
             margin-bottom: 15px;
             color: var(--text-light);
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar h2:hover {
+            transform: translateX(10px);
         }
         
         .sidebar p {
@@ -118,6 +137,11 @@
         
         .stat-item {
             text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-10px) scale(1.1);
         }
         
         .stat-value {
@@ -138,11 +162,21 @@
             color: var(--text-light);
             display: flex;
             align-items: center;
+            transition: transform 0.3s ease;
+        }
+        
+        h1:hover {
+            transform: translateX(10px);
         }
         
         h1 i {
             color: var(--fire-yellow);
             margin-right: 10px;
+            transition: transform 0.5s ease;
+        }
+        
+        h1:hover i {
+            transform: rotate(15deg) scale(1.2);
         }
         
         .subtitle {
@@ -160,11 +194,15 @@
             transition: all 0.3s;
             cursor: pointer;
             background: rgba(22, 27, 34, 0.5);
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease, border-color 0.3s, background 0.3s;
         }
         
         .upload-area:hover {
             border-color: var(--fire-yellow);
             background: rgba(255, 165, 0, 0.05);
+            transform: translateY(-5px) rotateX(5deg);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
         
         .upload-area.highlight {
@@ -172,10 +210,19 @@
             background: rgba(255, 165, 0, 0.1);
         }
         
+        .upload-area.hidden {
+            display: none;
+        }
+        
         .upload-icon {
             font-size: 40px;
             color: var(--fire-yellow);
             margin-bottom: 15px;
+            transition: transform 0.5s ease;
+        }
+        
+        .upload-area:hover .upload-icon {
+            transform: rotateY(180deg) scale(1.2);
         }
         
         .upload-text {
@@ -205,15 +252,33 @@
             justify-content: center;
             gap: 8px;
             margin-top: 10px;
+            transform-style: preserve-3d;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
         
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.4);
+            transform: translateY(-5px) rotateX(5deg);
+            box-shadow: 0 10px 20px rgba(255, 140, 0, 0.4);
+        }
+        
+        .btn:hover::before {
+            left: 100%;
         }
         
         .btn:active {
-            transform: translateY(0);
+            transform: translateY(0) rotateX(0);
         }
         
         .btn:disabled {
@@ -221,6 +286,10 @@
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
+        }
+        
+        .btn.hidden {
+            display: none;
         }
         
         .detecting {
@@ -234,6 +303,13 @@
             border-radius: 8px;
             font-weight: 600;
             color: var(--fire-yellow);
+            transform-style: preserve-3d;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateX(0); }
+            50% { transform: translateY(-10px) rotateX(5deg); }
         }
         
         .dot-loader {
@@ -294,6 +370,12 @@
             text-align: center;
             margin-bottom: 20px;
             animation: fadeIn 0.5s ease-out;
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease;
+        }
+        
+        .result-box:hover {
+            transform: translateY(-5px) rotateX(5deg);
         }
         
         .fire-result {
@@ -311,6 +393,11 @@
         .result-icon {
             font-size: 40px;
             margin-bottom: 15px;
+            transition: transform 0.5s ease;
+        }
+        
+        .result-box:hover .result-icon {
+            transform: rotateY(180deg) scale(1.2);
         }
         
         .result-text {
@@ -329,6 +416,11 @@
             border-radius: 8px;
             margin-top: 20px;
             border: 1px solid var(--dark-border);
+            transition: transform 0.3s ease;
+        }
+        
+        .preview-image:hover {
+            transform: scale(1.02) rotateZ(1deg);
         }
         
         .alarm-controls {
@@ -350,10 +442,13 @@
             justify-content: center;
             gap: 8px;
             width: 100%;
+            transform-style: preserve-3d;
         }
         
         .stop-btn:hover {
             background: linear-gradient(135deg, #666 0%, #444 100%);
+            transform: translateY(-3px) rotateX(5deg);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
         
         .back-btn {
@@ -365,22 +460,29 @@
             font-size: 14px;
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             gap: 8px;
             width: 100%;
             margin-top: 10px;
+            transform-style: preserve-3d;
+        }
+        
+        .back-btn.visible {
+            display: flex;
         }
         
         .back-btn:hover {
             border-color: var(--fire-yellow);
             color: var(--fire-yellow);
+            transform: translateY(-3px) rotateX(5deg);
+            box-shadow: 0 5px 15px rgba(255, 165, 0, 0.2);
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(20px) rotateX(-10deg); }
+            to { opacity: 1; transform: translateY(0) rotateX(0); }
         }
         
         .error-message {
@@ -544,8 +646,9 @@
                     return;
                 }
                 
-                // Show detecting indicator
-                detectBtn.style.display = 'none';
+                // Hide upload area and detect button, show detecting indicator
+                uploadArea.classList.add('hidden');
+                detectBtn.classList.add('hidden');
                 detectingIndicator.style.display = 'flex';
                 errorMessage.style.display = 'none';
                 
@@ -569,10 +672,12 @@
                 // Reset the form
                 fileInput.value = '';
                 fileName.textContent = '';
-                detectBtn.style.display = 'block';
+                detectBtn.classList.remove('hidden');
+                uploadArea.classList.remove('hidden');
                 detectingIndicator.style.display = 'none';
                 resultContainer.style.display = 'none';
                 errorMessage.style.display = 'none';
+                backBtn.classList.remove('visible');
                 fireAlarm.pause();
                 fireAlarm.currentTime = 0;
                 alarmControls.style.display = 'none';
@@ -605,6 +710,7 @@
                     
                     // Show alarm controls and play sound
                     alarmControls.style.display = 'block';
+                    backBtn.classList.add('visible');
                     
                     // Play your custom fire alarm sound
                     fireAlarm.play().catch(e => {
@@ -623,6 +729,7 @@
                     resultText.textContent = '✅ No Fire Detected';
                     confidenceText.textContent = `Confidence: ${confidence}%`;
                     alarmControls.style.display = 'none';
+                    backBtn.classList.add('visible');
                 }
                 
                 // Set preview image
