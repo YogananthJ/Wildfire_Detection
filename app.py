@@ -5,7 +5,7 @@ import os
 from werkzeug.utils import secure_filename
 
 # Load model
-MODEL_PATH = r"E:\Personal_Projects\cv\wildfire_detection_model (2).h5"
+MODEL_PATH = r"E:\Personal_Projects\cv\wildfire_detection_model.h5"
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
 # Create Flask app
