@@ -1,65 +1,99 @@
-from flask import Flask, render_template, request, send_from_directory
-import tensorflow as tf
+from flask import Flask, render_template, request, jsonify
 import numpy as np
-import os
-from werkzeug.utils import secure_filename
+import base64
+import io
+from PIL import Image
+import requests
 
-# Load model from project directory
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "wildfire_detection_model.h5")
-model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+# ================================
+# Load Pretrained YOLOv8 Model 
+# ================================
+MODEL_PATH = "wildfire_yolov8.pt"  
+yolo_model = YOLO(MODEL_PATH)
+print("✅ YOLOv8 model loaded successfully.")
 
-# Create Flask app
+# ================================
+# Roboflow API Setup
+# ================================
+API_KEY = "PJuwD4ncNkCOpzYHajI5"
+WORKSPACE = "test0-sbyyu"
+PROJECT = "wildfire-soeq8"
+VERSION = 10
+
+# Roboflow infer URL
+INFER_URL = f"https://detect.roboflow.com/{PROJECT}/{VERSION}?api_key={API_KEY}"
+
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Preprocessing function
-def preprocess_image(image_path):
-    img = tf.keras.preprocessing.image.load_img(image_path, target_size=(224, 224))  # adjust size if needed
-    img_array = tf.keras.preprocessing.image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0
-    return img_array
+# ================================
+# Helper: Send Image to Roboflow
+# ================================
+def predict_with_roboflow(image: Image.Image):
+    # Convert PIL image to bytes (JPEG)
+    buf = io.BytesIO()
+    image.save(buf, format="JPEG")
+    byte_im = buf.getvalue()
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    result = None
-    probability = None
-    filename = None
-    play_sound = False  # Default: no sound
-
-    if request.method == 'POST':
-        if 'file' not in request.files or request.files['file'].filename == '':
-            return render_template('index.html', error="No file selected")
-
-        file = request.files['file']
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-
-        # Preprocess and predict
-        img_array = preprocess_image(filepath)
-        predictions = model.predict(img_array)[0][0]  # adjust indexing based on model output
-        probability = round(float(predictions) * 100, 2)
-
-        if predictions >= 0.5:
-            result = "🔥 Fire Detected"
-            play_sound = True  # Play alarm if fire is detected
-        else:
-            result = "✅ No Fire"
-
-    return render_template(
-        'index.html',
-        result=result,
-        probability=probability,
-        filename=filename,
-        play_sound=play_sound
+    # Send to Roboflow API
+    resp = requests.post(
+        INFER_URL,
+        files={"file": ("image.jpg", byte_im, "image/jpeg")}
     )
+    return resp.json()
 
-# Route to serve uploaded files
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+# ================================
+# Routes
+# ================================
+@app.route("/")
+def index():
+    return render_template("index.html")
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # Dynamic port for Render
-    app.run(host='0.0.0.0', port=port, debug=True)
+@app.route("/upload_image", methods=["POST"])
+def upload_image():
+    if 'file' not in request.files or request.files['file'].filename == '':
+        return jsonify({"error": "No file selected."}), 400
+
+    file = request.files['file']
+    image = Image.open(file).convert("RGB")
+
+    try:
+        # Run prediction
+        result = predict_with_roboflow(image)
+
+        # Optionally draw boxes (if needed)
+        detections = []
+        status = "✅ Normal (No fire/smoke)"
+        labels = []
+
+        if "predictions" in result:
+            for pred in result["predictions"]:
+                label = pred["class"]
+                conf = pred["confidence"]
+                detections.append({
+                    "name": label,
+                    "confidence": round(conf * 100, 2),
+                    "box": [pred["x"], pred["y"], pred["width"], pred["height"]]
+                })
+                labels.append(label)
+
+        # Status summary
+        if "wildfire" in labels and "smoke" in labels:
+            status = "🔥 Fire and 💨 Smoke detected - CRITICAL ALERT 🔥"
+        elif "wildfire" in labels:
+            status = "🔥 Fire detected - ALERT"
+        elif "smoke" in labels:
+            status = "💨 Smoke detected - WARNING"
+
+        return jsonify({
+            "detections": detections,
+            "status": status
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ================================
+# Run
+# ================================
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
