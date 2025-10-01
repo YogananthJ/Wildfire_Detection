@@ -4,6 +4,7 @@ import base64
 import io
 from PIL import Image
 import requests
+from ultralytics import YOLO 
 
 # ================================
 # Load Pretrained YOLOv8 Model 
