@@ -1,100 +1,55 @@
-from flask import Flask, render_template, request, jsonify
-import numpy as np
-import base64
-import io
-from PIL import Image
+from flask import Flask, request, render_template, url_for
 import requests
-from ultralytics import YOLO 
-
-# ================================
-# Load Pretrained YOLOv8 Model 
-# ================================
-MODEL_PATH = "wildfire_yolov8.pt"  
-yolo_model = YOLO(MODEL_PATH)
-print("✅ YOLOv8 model loaded successfully.")
-
-# ================================
-# Roboflow API Setup
-# ================================
-API_KEY = "PJuwD4ncNkCOpzYHajI5"
-WORKSPACE = "test0-sbyyu"
-PROJECT = "wildfire-soeq8"
-VERSION = 10
-
-# Roboflow infer URL
-INFER_URL = f"https://detect.roboflow.com/{PROJECT}/{VERSION}?api_key={API_KEY}"
 
 app = Flask(__name__)
 
-# ================================
-# Helper: Send Image to Roboflow
-# ================================
-def predict_with_roboflow(image: Image.Image):
-    # Convert PIL image to bytes (JPEG)
-    buf = io.BytesIO()
-    image.save(buf, format="JPEG")
-    byte_im = buf.getvalue()
+# Replace with your Colab ngrok URL
+COLAB_API_URL = "https://thievish-unodoriferously-maren.ngrok-free.dev/predict"
 
-    # Send to Roboflow API
-    resp = requests.post(
-        INFER_URL,
-        files={"file": ("image.jpg", byte_im, "image/jpeg")}
-    )
-    return resp.json()
+# Map numeric class IDs to human-readable labels
+CLASS_MAP = {0: "no fire", 1: "fire", 2: "smoke"}
 
-# ================================
-# Routes
-# ================================
 @app.route("/")
-def index():
+def home():
     return render_template("index.html")
 
-@app.route("/upload_image", methods=["POST"])
-def upload_image():
-    if 'file' not in request.files or request.files['file'].filename == '':
-        return jsonify({"error": "No file selected."}), 400
+@app.route("/upload", methods=["POST"])
+def upload():
+    file = request.files.get("file")
+    if not file:
+        return "No file uploaded", 400
 
-    file = request.files['file']
-    image = Image.open(file).convert("RGB")
-
+    # Send image to Colab API
+    files = {"file": (file.filename, file.stream, file.mimetype)}
     try:
-        # Run prediction
-        result = predict_with_roboflow(image)
+        response = requests.post(COLAB_API_URL, files=files)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        return f"Error from API: {e}", 500
 
-        # Optionally draw boxes (if needed)
-        detections = []
-        status = "✅ Normal (No fire/smoke)"
-        labels = []
+    data = response.json()
+    img_base64 = data.get("image_base64")
+    predictions = data.get("predictions", [])
 
-        if "predictions" in result:
-            for pred in result["predictions"]:
-                label = pred["class"]
-                conf = pred["confidence"]
-                detections.append({
-                    "name": label,
-                    "confidence": round(conf * 100, 2),
-                    "box": [pred["x"], pred["y"], pred["width"], pred["height"]]
-                })
-                labels.append(label)
+    # Map numeric class IDs to human-readable labels
+    for p in predictions:
+        class_id = p.get("class")
+        if class_id is not None:
+            p["class"] = CLASS_MAP.get(class_id, str(class_id))
 
-        # Status summary
-        if "wildfire" in labels and "smoke" in labels:
-            status = "🔥 Fire and 💨 Smoke detected - CRITICAL ALERT 🔥"
-        elif "wildfire" in labels:
-            status = "🔥 Fire detected - ALERT"
-        elif "smoke" in labels:
-            status = "💨 Smoke detected - WARNING"
+    # Check if fire or smoke is detected
+    fire_detected = any(p.get("class") in ["fire", "smoke"] for p in predictions)
 
-        return jsonify({
-            "detections": detections,
-            "status": status
-        })
+    # Optional: simple status message
+    status_message = "Fire Detected!" if fire_detected else "No Fire Detected."
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return render_template(
+        "index.html",
+        img_base64=img_base64,
+        predictions=predictions,
+        fire_detected=fire_detected,
+        status_message=status_message
+    )
 
-# ================================
-# Run
-# ================================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug=True)

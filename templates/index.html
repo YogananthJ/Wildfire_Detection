@@ -1,744 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wildfire Detection System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --fire-yellow: #FFA500;
-            --fire-orange: #FF8C00;
-            --fire-red: #FF4500;
-            --dark-bg: #0d1117;
-            --dark-card: #161b22;
-            --dark-border: #30363d;
-            --text-light: #f0f6fc;
-            --text-muted: #8b949e;
-            --safe-green: #3fb950;
-            --danger-red: #da3633;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-        }
-        
-        body {
-            background-color: var(--dark-bg);
-            color: var(--text-light);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .container {
-            display: flex;
-            width: 100%;
-            max-width: 1000px;
-            background: var(--dark-card);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--dark-border);
-            transform-style: preserve-3d;
-            perspective: 1000px;
-        }
-        
-        .sidebar {
-            width: 40%;
-            background: linear-gradient(135deg, #1a1f2c 0%, #0d1117 100%);
-            padding: 40px 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.5s ease;
-        }
-        
-        .sidebar::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 30% 20%, rgba(255, 165, 0, 0.1) 0%, transparent 50%);
-        }
-        
-        .main-content {
-            width: 60%;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.5s ease;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            margin-bottom: 30px;
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--fire-yellow);
-            transition: transform 0.3s ease;
-        }
-        
-        .logo:hover {
-            transform: translateY(-5px) scale(1.05);
-        }
-        
-        .logo i {
-            margin-right: 12px;
-            font-size: 28px;
-        }
-        
-        .safety-icon {
-            font-size: 80px;
-            color: var(--fire-yellow);
-            margin: 20px 0;
-            filter: drop-shadow(0 0 10px rgba(255, 165, 0, 0.3));
-            transition: transform 0.5s ease;
-        }
-        
-        .safety-icon:hover {
-            transform: rotateY(180deg) scale(1.1);
-        }
-        
-        .sidebar h2 {
-            font-size: 22px;
-            margin-bottom: 15px;
-            color: var(--text-light);
-            transition: transform 0.3s ease;
-        }
-        
-        .sidebar h2:hover {
-            transform: translateX(10px);
-        }
-        
-        .sidebar p {
-            color: var(--text-muted);
-            line-height: 1.6;
-            font-size: 14px;
-        }
-        
-        .fire-stats {
-            display: flex;
-            gap: 20px;
-            margin-top: 30px;
-        }
-        
-        .stat-item {
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-item:hover {
-            transform: translateY(-10px) scale(1.1);
-        }
-        
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--fire-yellow);
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 5px;
-        }
-        
-        h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            transition: transform 0.3s ease;
-        }
-        
-        h1:hover {
-            transform: translateX(10px);
-        }
-        
-        h1 i {
-            color: var(--fire-yellow);
-            margin-right: 10px;
-            transition: transform 0.5s ease;
-        }
-        
-        h1:hover i {
-            transform: rotate(15deg) scale(1.2);
-        }
-        
-        .subtitle {
-            color: var(--text-muted);
-            margin-bottom: 30px;
-            font-size: 15px;
-        }
-        
-        .upload-area {
-            border: 2px dashed var(--dark-border);
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 25px;
-            transition: all 0.3s;
-            cursor: pointer;
-            background: rgba(22, 27, 34, 0.5);
-            transform-style: preserve-3d;
-            transition: transform 0.3s ease, border-color 0.3s, background 0.3s;
-        }
-        
-        .upload-area:hover {
-            border-color: var(--fire-yellow);
-            background: rgba(255, 165, 0, 0.05);
-            transform: translateY(-5px) rotateX(5deg);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-        
-        .upload-area.highlight {
-            border-color: var(--fire-yellow);
-            background: rgba(255, 165, 0, 0.1);
-        }
-        
-        .upload-area.hidden {
-            display: none;
-        }
-        
-        .upload-icon {
-            font-size: 40px;
-            color: var(--fire-yellow);
-            margin-bottom: 15px;
-            transition: transform 0.5s ease;
-        }
-        
-        .upload-area:hover .upload-icon {
-            transform: rotateY(180deg) scale(1.2);
-        }
-        
-        .upload-text {
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        
-        .file-name {
-            font-size: 14px;
-            color: var(--fire-yellow);
-            margin-top: 10px;
-            word-break: break-word;
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, var(--fire-orange) 0%, var(--fire-red) 100%);
-            color: white;
-            border: none;
-            padding: 14px 20px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 10px;
-            transform-style: preserve-3d;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn:hover {
-            transform: translateY(-5px) rotateX(5deg);
-            box-shadow: 0 10px 20px rgba(255, 140, 0, 0.4);
-        }
-        
-        .btn:hover::before {
-            left: 100%;
-        }
-        
-        .btn:active {
-            transform: translateY(0) rotateX(0);
-        }
-        
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .btn.hidden {
-            display: none;
-        }
-        
-        .detecting {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
-            padding: 14px 20px;
-            background: rgba(22, 27, 34, 0.8);
-            border-radius: 8px;
-            font-weight: 600;
-            color: var(--fire-yellow);
-            transform-style: preserve-3d;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotateX(0); }
-            50% { transform: translateY(-10px) rotateX(5deg); }
-        }
-        
-        .dot-loader {
-            display: flex;
-            gap: 4px;
-        }
-        
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--fire-yellow);
-            animation: dotPulse 1.5s infinite ease-in-out;
-        }
-        
-        .dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        
-        .dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        
-        @keyframes dotPulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.7; }
-        }
-        
-        .wipe-text {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .wipe-text::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 165, 0, 0.3), transparent);
-            animation: wipe 2s infinite;
-        }
-        
-        @keyframes wipe {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-        
-        .result-container {
-            margin-top: 30px;
-            display: none;
-        }
-        
-        .result-box {
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 20px;
-            animation: fadeIn 0.5s ease-out;
-            transform-style: preserve-3d;
-            transition: transform 0.3s ease;
-        }
-        
-        .result-box:hover {
-            transform: translateY(-5px) rotateX(5deg);
-        }
-        
-        .fire-result {
-            background: rgba(218, 54, 51, 0.1);
-            border: 1px solid var(--danger-red);
-            color: var(--danger-red);
-        }
-        
-        .safe-result {
-            background: rgba(63, 185, 80, 0.1);
-            border: 1px solid var(--safe-green);
-            color: var(--safe-green);
-        }
-        
-        .result-icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-            transition: transform 0.5s ease;
-        }
-        
-        .result-box:hover .result-icon {
-            transform: rotateY(180deg) scale(1.2);
-        }
-        
-        .result-text {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        
-        .confidence {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-        
-        .preview-image {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-top: 20px;
-            border: 1px solid var(--dark-border);
-            transition: transform 0.3s ease;
-        }
-        
-        .preview-image:hover {
-            transform: scale(1.02) rotateZ(1deg);
-        }
-        
-        .alarm-controls {
-            display: none;
-            margin-top: 20px;
-        }
-        
-        .stop-btn {
-            background: linear-gradient(135deg, #555 0%, #333 100%);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            transform-style: preserve-3d;
-        }
-        
-        .stop-btn:hover {
-            background: linear-gradient(135deg, #666 0%, #444 100%);
-            transform: translateY(-3px) rotateX(5deg);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .back-btn {
-            background: transparent;
-            color: var(--text-muted);
-            border: 1px solid var(--dark-border);
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            margin-top: 10px;
-            transform-style: preserve-3d;
-        }
-        
-        .back-btn.visible {
-            display: flex;
-        }
-        
-        .back-btn:hover {
-            border-color: var(--fire-yellow);
-            color: var(--fire-yellow);
-            transform: translateY(-3px) rotateX(5deg);
-            box-shadow: 0 5px 15px rgba(255, 165, 0, 0.2);
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px) rotateX(-10deg); }
-            to { opacity: 1; transform: translateY(0) rotateX(0); }
-        }
-        
-        .error-message {
-            color: var(--danger-red);
-            margin-top: 15px;
-            text-align: center;
-            display: none;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            
-            .sidebar, .main-content {
-                width: 100%;
-            }
-            
-            .sidebar {
-                padding: 30px 20px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wildfire Detection System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --fire-yellow: #FFA500;
+      --fire-orange: #FF8C00;
+      --fire-red: #FF4500;
+      --dark-bg: #0d1117;
+      --dark-card: #161b22;
+      --dark-border: #30363d;
+      --text-light: #f0f6fc;
+      --text-muted: #8b949e;
+      --safe-green: #3fb950;
+      --danger-red: #da3633;
+    }
+
+    /* General Styles */
+    * {margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif;}
+    body {
+      background-color: var(--dark-bg);
+      color: var(--text-light);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+      background-size: cover;
+      background-position: center;
+      background-blend-mode: overlay;
+      background-color: rgba(13,17,23,0.85);
+    }
+    .container {display: flex; width: 100%; max-width: 1200px; background: var(--dark-card); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border:1px solid var(--dark-border); transform-style: preserve-3d; perspective: 1000px;}
+    .sidebar {width: 35%; background: linear-gradient(135deg, #1a1f2c 0%, #0d1117 100%); padding: 40px 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.5s ease;}
+    .sidebar::before {content: ""; position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at 30% 20%, rgba(255,165,0,0.1) 0%, transparent 50%);}
+    .main-content {width: 65%; padding: 40px; display: flex; flex-direction: column; transition: transform 0.5s ease;}
+    .logo {display:flex; align-items:center; margin-bottom:30px; font-size:24px; font-weight:700; color:var(--fire-yellow); transition: transform 0.3s ease;}
+    .logo:hover {transform: translateY(-5px) scale(1.05);}
+    .logo i {margin-right:12px; font-size:28px;}
+    .safety-icon {font-size:80px; color: var(--fire-yellow); margin:20px 0; filter: drop-shadow(0 0 10px rgba(255,165,0,0.3)); transition: transform 0.5s ease;}
+    .safety-icon:hover {transform: rotateY(180deg) scale(1.1);}
+    .sidebar h2 {font-size:22px; margin-bottom:15px; color: var(--text-light); transition: transform 0.3s ease;}
+    .sidebar h2:hover {transform: translateX(10px);}
+    .sidebar p {color: var(--text-muted); line-height:1.6; font-size:14px;}
+    .fire-stats {display:flex; gap:20px; margin-top:30px;}
+    .stat-item {text-align:center; transition: transform 0.3s ease;}
+    .stat-item:hover {transform: translateY(-10px) scale(1.1);}
+    .stat-value {font-size:24px; font-weight:700; color: var(--fire-yellow);}
+    .stat-label {font-size:12px; color: var(--text-muted); margin-top:5px;}
+    h1 {font-size:28px; margin-bottom:10px; color: var(--text-light); display:flex; align-items:center; transition: transform 0.3s ease;}
+    h1:hover {transform: translateX(10px);}
+    h1 i {color: var(--fire-yellow); margin-right:10px; transition: transform 0.5s ease;}
+    h1:hover i {transform: rotate(15deg) scale(1.2);}
+    .subtitle {color: var(--text-muted); margin-bottom:30px; font-size:15px;}
+    .upload-area {border:2px dashed var(--dark-border); border-radius:12px; padding:30px; text-align:center; margin-bottom:25px; transition: all 0.3s; cursor:pointer; background: rgba(22,27,34,0.5); transform-style: preserve-3d;}
+    .upload-area:hover {border-color: var(--fire-yellow); background: rgba(255,165,0,0.05); transform: translateY(-5px) rotateX(5deg); box-shadow:0 10px 20px rgba(0,0,0,0.2);}
+    .upload-area.highlight {border-color: var(--fire-yellow); background: rgba(255,165,0,0.1);}
+    .upload-area.hidden {display:none;}
+    .upload-icon {font-size:40px; color: var(--fire-yellow); margin-bottom:15px; transition: transform 0.5s ease;}
+    .upload-area:hover .upload-icon {transform: rotateY(180deg) scale(1.2);}
+    .upload-text {font-size:16px; margin-bottom:10px;}
+    .file-name {font-size:14px; color: var(--fire-yellow); margin-top:10px; word-break: break-word;}
+    .button-container {display:flex; justify-content:center; width:100%; margin-top:10px;}
+    .btn {background: linear-gradient(135deg, var(--fire-orange) 0%, var(--fire-red) 100%); color:white; border:none; padding:14px 20px; border-radius:8px; font-size:16px; font-weight:600; cursor:pointer; transition: all 0.3s; display:flex; align-items:center; justify-content:center; gap:8px; transform-style: preserve-3d; position: relative; overflow:hidden; width:60%; max-width:300px;}
+    .btn::before {content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition:left 0.5s;}
+    .btn:hover {transform: translateY(-5px) rotateX(5deg); box-shadow:0 10px 20px rgba(255,140,0,0.4);}
+    .btn:hover::before {left:100%;}
+    .btn:active {transform: translateY(0) rotateX(0);}
+    .btn:disabled {opacity:0.6; cursor:not-allowed; transform:none; box-shadow:none;}
+    .btn.hidden {display:none;}
+    .detecting {display:none; align-items:center; justify-content:center; gap:10px; margin-top:10px; padding:14px 20px; background: rgba(22,27,34,0.8); border-radius:8px; font-weight:600; color: var(--fire-yellow); transform-style: preserve-3d; animation: float 3s ease-in-out infinite;}
+    @keyframes float {0%,100%{transform: translateY(0) rotateX(0);} 50% {transform: translateY(-10px) rotateX(5deg);}}
+    .ai-analysis-container {display:none; flex-direction: column; align-items:center; margin-top:20px; padding:20px; background: rgba(22,27,34,0.8); border-radius:12px; border:1px solid var(--dark-border);}
+    .ai-analysis-header {display:flex; align-items:center; gap:10px; margin-bottom:20px; font-size:18px; font-weight:600; color: var(--fire-yellow);}
+    .ai-analysis-content {display:flex; width:100%; gap:20px;}
+    .image-preview-container {position:relative; width:60%; border-radius:8px; overflow:hidden; border:1px solid var(--dark-border);}
+    .analysis-image {width:100%; display:block; border-radius:8px;}
+    .ai-scan-overlay {position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(90deg, transparent 0%, rgba(255,165,0,0.2) 50%, transparent 100%); animation: scan 2s infinite linear; transform: translateX(-100%);}
+    @keyframes scan {0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+    .analysis-status {width:40%; display:flex; flex-direction: column; gap:15px;}
+    .status-item {display:flex; align-items:center; gap:10px; padding:10px; background: rgba(255,165,0,0.05); border-radius:8px; border-left:3px solid var(--fire-yellow);}
+    .status-icon {color: var(--fire-yellow); font-size:18px;}
+    .status-text {font-size:14px;}
+    .wipe-text {position:relative; overflow:hidden;}
+    .wipe-text::after {content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,165,0,0.3), transparent); animation:wipe 2s infinite;}
+    @keyframes wipe {0%{left:-100%;}100%{left:100%;}}
+    .result-container {margin-top:30px; display:none;}
+    .result-box {padding:20px; border-radius:12px; text-align:center; margin-bottom:20px; animation: fadeIn 0.5s ease-out; transform-style: preserve-3d; transition: transform 0.3s ease;}
+    .result-box:hover {transform: translateY(-5px) rotateX(5deg);}
+    .fire-result {background: rgba(218,54,51,0.1); border:1px solid var(--danger-red); color: var(--danger-red);}
+    .safe-result {background: rgba(63,185,80,0.1); border:1px solid var(--safe-green); color: var(--safe-green);}
+    .result-icon {font-size:40px; margin-bottom:15px; transition: transform 0.5s ease;}
+    .result-box:hover .result-icon {transform: rotateY(180deg) scale(1.2);}
+    .result-text {font-size:20px; font-weight:700; margin-bottom:10px;}
+    .confidence {font-size:14px; color: var(--text-muted);}
+    .preview-image-container {position:relative; margin-top:20px; border-radius:8px; overflow:hidden; border:1px solid var(--dark-border);}
+    .preview-image {max-width:100%; border-radius:8px; transition: transform 0.3s ease;}
+    .preview-image:hover {transform: scale(1.02) rotateZ(1deg);}
+    .bounding-box {
+      position:absolute;
+      border:2px solid var(--fire-red);
+      box-shadow:0 0 10px rgba(218,54,51,0.5);
+      pointer-events:none;
+    }
+    .alarm-controls {display:none; margin-top:20px;}
+    .stop-btn {background: linear-gradient(135deg,#555 0%,#333 100%); color:white; border:none; padding:12px 20px; border-radius:8px; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; width:100%; transform-style: preserve-3d;}
+    .stop-btn:hover {background: linear-gradient(135deg,#666 0%,#444 100%); transform: translateY(-3px) rotateX(5deg); box-shadow:0 5px 15px rgba(0,0,0,0.3);}
+    .back-btn {background:transparent; color:var(--text-muted); border:1px solid var(--dark-border); padding:12px 20px; border-radius:8px; font-size:14px; cursor:pointer; display:none; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:10px; transform-style: preserve-3d;}
+    .back-btn.visible {display:flex;}
+    .back-btn:hover {border-color: var(--fire-yellow); color: var(--fire-yellow); transform: translateY(-3px) rotateX(5deg); box-shadow:0 5px 15px rgba(255,165,0,0.2);}
+    @keyframes fadeIn {from{opacity:0; transform: translateY(20px) rotateX(-10deg);}to{opacity:1; transform: translateY(0) rotateX(0);}}
+    .error-message {color: var(--danger-red); margin-top:15px; text-align:center; display:none;}
+    @media (max-width:992px){.container{flex-direction:column; max-width:600px;}.sidebar,.main-content{width:100%;}.sidebar{padding:30px 20px;}.ai-analysis-content{flex-direction:column;}.image-preview-container,.analysis-status{width:100%;}.btn{width:80%;}}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="sidebar">
-            <div class="logo">
-                <i class="fas fa-shield-alt"></i>
-                <span>FireShield</span>
-            </div>
-            
-            <div class="safety-icon">
-                <i class="fas fa-shield-alt"></i>
-            </div>
-            
-            <h2>Advanced Wildfire Detection</h2>
-            <p>Our AI-powered system analyzes satellite and aerial imagery to detect wildfires early, helping protect communities and natural resources.</p>
-            
-            <div class="fire-stats">
-                <div class="stat-item">
-                    <div class="stat-value">98.7%</div>
-                    <div class="stat-label">Accuracy</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">2.3s</div>
-                    <div class="stat-label">Avg. Detection</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">24/7</div>
-                    <div class="stat-label">Monitoring</div>
-                </div>
-            </div>
+  <div class="container">
+    <div class="sidebar">
+      <div class="logo"><i class="fas fa-shield-alt"></i><span>FireShield</span></div>
+      <div class="safety-icon"><i class="fas fa-shield-alt"></i></div>
+      <h2>Advanced Wildfire Detection</h2>
+      <p>AI-powered analysis to detect wildfires early, protecting communities and resources.</p>
+      <div class="fire-stats">
+        <div class="stat-item"><div class="stat-value">98.7%</div><div class="stat-label">Accuracy</div></div>
+        <div class="stat-item"><div class="stat-value">2.3s</div><div class="stat-label">Avg. Detection</div></div>
+        <div class="stat-item"><div class="stat-value">24/7</div><div class="stat-label">Monitoring</div></div>
+      </div>
+    </div>
+    <div class="main-content">
+      <h1><i class="fas fa-fire"></i> Wildfire Detection</h1>
+      <p class="subtitle">Upload an aerial or satellite image to analyze for wildfire presence</p>
+      
+      <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <div class="upload-text">Drag & drop an image or click to browse</div>
+          <div class="file-name" id="fileName"></div>
+          <input type="file" name="file" id="fileInput" accept="image/*" style="display:none;" required>
+        </div>
+        <div class="button-container">
+          <button type="submit" class="btn" id="detectBtn"><i class="fas fa-search"></i> Upload & Detect</button>
+        </div>
+      </form>
+      
+      {% if img_base64 %}
+      <div class="result-container" id="resultContainer" style="display:block;">
+        <div class="result-box {% if fire_detected %}fire-result{% else %}safe-result{% endif %}">
+          <div class="result-icon">
+            {% if fire_detected %}
+            <i class="fas fa-fire"></i>
+            {% else %}
+            <i class="fas fa-check-circle"></i>
+            {% endif %}
+          </div>
+          <div class="result-text">
+            {% if fire_detected %}
+            🔥 Fire Detected
+            {% else %}
+            ✅ No Fire Detected
+            {% endif %}
+          </div>
+          <div class="confidence">
+            {% if fire_detected %}
+            High confidence of wildfire activity
+            {% else %}
+            No signs of wildfire detected
+            {% endif %}
+          </div>
+        </div>
+        <div class="preview-image-container">
+          <img class="preview-image" src="data:image/jpeg;base64,{{ img_base64 }}" alt="Processed Image">
         </div>
         
-        <div class="main-content">
-            <h1><i class="fas fa-fire"></i> Wildfire Detection</h1>
-            <p class="subtitle">Upload an aerial or satellite image to analyze for wildfire presence</p>
-            
-            <form id="uploadForm">
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
-                    <div class="upload-text">Drag & drop an image or click to browse</div>
-                    <div class="file-name" id="fileName"></div>
-                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                </div>
-                
-                <button type="submit" class="btn" id="detectBtn">
-                    <i class="fas fa-search"></i> Detect Wildfire
-                </button>
-                
-                <div class="detecting" id="detectingIndicator">
-                    <div class="dot-loader">
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                    </div>
-                    <div class="wipe-text">Detecting...</div>
-                </div>
-            </form>
-            
-            <div class="error-message" id="errorMessage"></div>
-            
-            <div class="result-container" id="resultContainer">
-                <div class="result-box" id="resultBox">
-                    <div class="result-icon" id="resultIcon"></div>
-                    <div class="result-text" id="resultText"></div>
-                    <div class="confidence" id="confidenceText"></div>
-                </div>
-                
-                <img class="preview-image" id="previewImage" src="" alt="Uploaded image">
-                
-                <div class="alarm-controls" id="alarmControls">
-                    <button class="stop-btn" id="stopAlarmBtn">
-                        <i class="fas fa-stop"></i> Stop Alarm
-                    </button>
-                </div>
-            </div>
-            
-            <button class="back-btn" id="backBtn">
-                <i class="fas fa-arrow-left"></i> Back to Upload
-            </button>
+        {% if fire_detected %}
+        <div class="alarm-controls" style="display:block;">
+          <button class="stop-btn" onclick="stopAlarm()"><i class="fas fa-stop"></i> Stop Alarm</button>
         </div>
+        {% endif %}
+        
+        <button class="back-btn visible" onclick="resetForm()"><i class="fas fa-arrow-left"></i> Back to Upload</button>
+      </div>
+      {% endif %}
+      
+      {% if fire_detected %}
+      <audio id="alarmAudio" autoplay loop>
+        <source src="{{ url_for('static', filename='fire_alarm.mp3') }}" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+      {% endif %}
     </div>
+  </div>
 
-    <!-- Using your custom fire alarm sound -->
-    <audio id="fireAlarm" loop>
-        <source src="static/fire_alarm.mp3" type="audio/mpeg">
-        <!-- Fallback in case the file is not found -->
-        <source src="https://assets.mixkit.co/active_storage/sfx/257/257-preview.mp3" type="audio/mpeg">
-    </audio>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const uploadArea = document.getElementById('uploadArea');
+      const fileInput = document.getElementById('fileInput');
+      const fileName = document.getElementById('fileName');
+      
+      uploadArea.addEventListener('click', () => fileInput.click());
+      uploadArea.addEventListener('dragover', e => {
+        e.preventDefault(); 
+        uploadArea.classList.add('highlight');
+      });
+      uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('highlight'));
+      uploadArea.addEventListener('drop', e => {
+        e.preventDefault(); 
+        uploadArea.classList.remove('highlight'); 
+        if(e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files; 
+          handleFileSelect();
+        }
+      });
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // DOM elements
-            const uploadArea = document.getElementById('uploadArea');
-            const fileInput = document.getElementById('fileInput');
-            const fileName = document.getElementById('fileName');
-            const uploadForm = document.getElementById('uploadForm');
-            const detectBtn = document.getElementById('detectBtn');
-            const detectingIndicator = document.getElementById('detectingIndicator');
-            const errorMessage = document.getElementById('errorMessage');
-            const resultContainer = document.getElementById('resultContainer');
-            const resultBox = document.getElementById('resultBox');
-            const resultIcon = document.getElementById('resultIcon');
-            const resultText = document.getElementById('resultText');
-            const confidenceText = document.getElementById('confidenceText');
-            const previewImage = document.getElementById('previewImage');
-            const alarmControls = document.getElementById('alarmControls');
-            const stopAlarmBtn = document.getElementById('stopAlarmBtn');
-            const backBtn = document.getElementById('backBtn');
-            const fireAlarm = document.getElementById('fireAlarm');
-            
-            // Event listeners
-            uploadArea.addEventListener('click', () => fileInput.click());
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('highlight');
-            });
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('highlight');
-            });
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('highlight');
-                if (e.dataTransfer.files.length) {
-                    fileInput.files = e.dataTransfer.files;
-                    handleFileSelect();
-                }
-            });
-            
-            fileInput.addEventListener('change', handleFileSelect);
-            
-            uploadForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                if (!fileInput.files.length) {
-                    showError('Please select an image first');
-                    return;
-                }
-                
-                // Hide upload area and detect button, show detecting indicator
-                uploadArea.classList.add('hidden');
-                detectBtn.classList.add('hidden');
-                detectingIndicator.style.display = 'flex';
-                errorMessage.style.display = 'none';
-                
-                // Simulate detection process (in a real app, this would be an AJAX call)
-                setTimeout(() => {
-                    // Simulate a response
-                    const hasFire = Math.random() > 0.5;
-                    const confidence = (Math.random() * 30 + 70).toFixed(1); // 70-100% confidence
-                    
-                    showResult(hasFire, confidence, URL.createObjectURL(fileInput.files[0]));
-                }, 2500);
-            });
-            
-            stopAlarmBtn.addEventListener('click', function() {
-                fireAlarm.pause();
-                fireAlarm.currentTime = 0;
-                alarmControls.style.display = 'none';
-            });
-            
-            backBtn.addEventListener('click', function() {
-                // Reset the form
-                fileInput.value = '';
-                fileName.textContent = '';
-                detectBtn.classList.remove('hidden');
-                uploadArea.classList.remove('hidden');
-                detectingIndicator.style.display = 'none';
-                resultContainer.style.display = 'none';
-                errorMessage.style.display = 'none';
-                backBtn.classList.remove('visible');
-                fireAlarm.pause();
-                fireAlarm.currentTime = 0;
-                alarmControls.style.display = 'none';
-            });
-            
-            // Functions
-            function handleFileSelect() {
-                if (fileInput.files.length) {
-                    fileName.textContent = fileInput.files[0].name;
-                } else {
-                    fileName.textContent = '';
-                }
-            }
-            
-            function showError(message) {
-                errorMessage.textContent = message;
-                errorMessage.style.display = 'block';
-            }
-            
-            function showResult(hasFire, confidence, imageUrl) {
-                // Hide detecting indicator
-                detectingIndicator.style.display = 'none';
-                
-                // Set result content
-                if (hasFire) {
-                    resultBox.className = 'result-box fire-result';
-                    resultIcon.innerHTML = '<i class="fas fa-fire"></i>';
-                    resultText.textContent = '🔥 Fire Detected';
-                    confidenceText.textContent = `Confidence: ${confidence}%`;
-                    
-                    // Show alarm controls and play sound
-                    alarmControls.style.display = 'block';
-                    backBtn.classList.add('visible');
-                    
-                    // Play your custom fire alarm sound
-                    fireAlarm.play().catch(e => {
-                        console.log('Audio play failed:', e);
-                        // If custom sound fails, try the fallback
-                        if (fireAlarm.currentSrc !== fireAlarm.src) {
-                            fireAlarm.src = fireAlarm.querySelector('source[src*="mixkit"]').src;
-                            fireAlarm.play().catch(e2 => {
-                                console.log('Fallback audio also failed:', e2);
-                            });
-                        }
-                    });
-                } else {
-                    resultBox.className = 'result-box safe-result';
-                    resultIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
-                    resultText.textContent = '✅ No Fire Detected';
-                    confidenceText.textContent = `Confidence: ${confidence}%`;
-                    alarmControls.style.display = 'none';
-                    backBtn.classList.add('visible');
-                }
-                
-                // Set preview image
-                previewImage.src = imageUrl;
-                
-                // Show result container
-                resultContainer.style.display = 'block';
-            }
-        });
-    </script>
+      fileInput.addEventListener('change', handleFileSelect);
+
+      function handleFileSelect() { 
+        if(fileInput.files.length) { 
+          fileName.textContent = fileInput.files[0].name;
+        } else {
+          fileName.textContent = '';
+        }
+      }
+    });
+
+    function stopAlarm() {
+      var audio = document.getElementById('alarmAudio');
+      audio.pause();
+      audio.currentTime = 0;
+    }
+
+    function resetForm() {
+      document.getElementById('uploadForm').reset();
+      document.getElementById('fileName').textContent = '';
+      document.getElementById('resultContainer').style.display = 'none';
+    }
+  </script>
 </body>
 </html>
